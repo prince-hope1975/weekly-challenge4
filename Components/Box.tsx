@@ -1,0 +1,179 @@
+import React, { PropsWithChildren, useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useGlobalContext } from "../context.tsx";
+import { motion, MotionProps } from "framer-motion";
+
+const Box = (
+  props: PropsWithChildren & {
+    id: string;
+    img: string;
+    price: number;
+    time_in_secs: number;
+    desc: string;
+    owner: string;
+  }
+) => {
+  const { img, price, time_in_secs, owner, desc } = props;
+  const time = new Date(time_in_secs)?.toISOString().substring(11, 19);
+  const [hour, min, sec] = time.split(":");
+  const [hours, setHours] = useState(Number(min));
+  const [minutes, setMinutes] = useState(Number(min));
+  const [seconds, setSeconds] = useState(Number(sec));
+  useEffect(() => {
+    let myInterval = setInterval(() => {
+      if (seconds > 0) {
+        setSeconds(seconds - 1);
+      }
+      if (seconds === 0) {
+        if (minutes === 0) {
+          clearInterval(myInterval);
+        } else {
+          setMinutes(minutes - 1);
+          setSeconds(59);
+        }
+      }
+    }, 1000);
+    return () => {
+      clearInterval(myInterval);
+    };
+  });
+  const router = useRouter();
+  const {wallet} = useGlobalContext()
+  return (
+    <motion.div
+      // whileInView={{ opacity: 1, }}
+
+      animate={{ x: [-200, 0], opacity: [0, 1] }}
+      transition={{ delay: 1, duration: 1 }}
+      {...props}
+      className={``}
+    >
+      <div
+        className={``}
+        style={{ backgroundImage: `url(${img})` }}
+      ></div>
+      <div
+        className={``}
+        onClick={() => {
+          router.push(`/item/${props.id}`);
+        }}
+      >
+        <div className={``}>
+          <span>owner</span> : @
+        {(owner == wallet?.networkAccount?.addr) ?"You": <p style={{ display: "inline" }}>
+            {owner.toString().substring(0, 5)}...
+            {owner.toString().substring(owner.length - 5, owner.length)}
+          </p>}
+        </div>
+        <div className={``}>
+          <span>Ends in</span> {hours}h {minutes}m {seconds}s
+        </div>
+        <div className={``}>
+          <span>Current Bid</span> {price} Algo
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+export const Box2 = (
+  props: PropsWithChildren &
+    MotionProps & {
+      id: string;
+      img: string;
+      price: number;
+      desc: string;
+      owner: string;
+      className?: string;
+    }
+) => {
+  const { img, price, owner, desc, id, className } = props;
+  const router = useRouter();
+
+  return (
+    <motion.div {...props} className={`${``} ${className}`}>
+      <div
+        className={``}
+        style={{ backgroundImage: `url(${img})` }}
+      ></div>
+      <div
+        className={``}
+        onClick={() => {
+          router.push(`/item/${props.id}`);
+        }}
+      >
+        <div className={``}>
+          <span>Home # {id} </span>{" "}
+          <p>
+            {" "}
+            @{owner.toString().substring(0, 5)}...
+            {owner.toString().substring(owner.length - 5, owner.length)}
+          </p>
+        </div>
+        <div className={``}>
+          <span>Price</span> {price} Algo
+        </div>
+        <div className={``}>
+          <span>Highest Bid</span> {price} Algo
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export const DisplayBoxes = (
+  props: PropsWithChildren & { head: string; text: string }
+) => {
+  const { head, text } = props;
+  return (
+    <div className={``}>
+      <h3>{head}</h3>
+      <p>{text}</p>
+    </div>
+  );
+};
+export const DisplayBoxes2 = (
+  props: PropsWithChildren & { head: string; text: string }
+) => {
+  const { head, text } = props;
+  return (
+    <div className={``}>
+      <h3>{head}</h3>
+      <p>{text}</p>
+    </div>
+  );
+};
+
+export const WalletBox = (
+  props: PropsWithChildren & {
+    dataArr: Array<{
+      wallet_name: string;
+      wallet_route: string;
+      img: string;
+    }>;
+  }
+) => {
+  const router = useRouter();
+  const { appState } = useGlobalContext();
+  return (
+    <div className={``}>
+      {props.dataArr.map(({ img, wallet_name, wallet_route }) => {
+        return (
+          <div
+            key={wallet_name}
+            onClick={() => {
+              const wallet = window.localStorage.getItem("current_wallet");
+
+              if (wallet !== wallet_name) {
+                router.push(`login/${wallet_route}`);
+              }
+            }}
+          >
+            <img src={img} alt={wallet_name} />
+            <p>{wallet_name}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+export default Box;
